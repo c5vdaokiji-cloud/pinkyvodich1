@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc nghiệm Hóa học</title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tải KaTeX để hiển thị công thức toán/hóa -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" xintegrity="sha384-KiWOvVjnN8qwZuGTRRnejDbxZhaLNFtfDOHoLqIH/eVUrJcTQsUoTZEaUvIeMh+Q" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" xintegrity="sha384-hIoPexBIONfl8GkOeaNwlS+SkmP2PdvTrS/vGqIEeJ1+UqsSYvLjMhIiMhAebxG/..." crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxdUeVgT+HUPG3A/PjCPT5ldxMstPq5//jjObeZ5OIuSjMg1I+2TM6KL8oP/Ck" crossorigin="anonymous"></script>
+    
+    <style>
+        /* Sử dụng font Inter từ Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Tùy chỉnh KaTeX */
+        .katex {
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white rounded-lg shadow-xl p-6 md:p-8 w-full max-w-3xl">
+
+        <!-- Màn hình Bắt đầu -->
+        <div id="start-screen" class="text-center">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">Bài trắc nghiệm Hóa học</h1>
+            <p class="text-gray-600 mb-6">Đây là bài trắc nghiệm dựa trên tệp PDF bạn đã tải lên. Có tổng cộng <span id="total-questions-start"></span> câu hỏi.</p>
+            <button id="start-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-transform transform hover:scale-105">
+                Bắt đầu làm bài
+            </button>
+        </div>
+
+        <!-- Màn hình Trắc nghiệm -->
+        <div id="quiz-screen" class="hidden">
+            <!-- Header câu hỏi -->
+            <div class="mb-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xl font-semibold text-blue-700">Câu hỏi <span id="question-number"></span>/<span id="total-questions"></span></span>
+                    <span id="timer" class="text-lg font-medium text-gray-700">15:00</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Nội dung câu hỏi -->
+            <div id="question-text" class="text-lg text-gray-800 mb-6 min-h-[100px]"></div>
+
+            <!-- Các lựa chọn -->
+            <div id="options-container" class="space-y-3">
+                <!-- Các lựa chọn sẽ được thêm vào đây bằng JS -->
+            </div>
+
+            <!-- Nút điều hướng -->
+            <div class="flex justify-between mt-8">
+                <button id="prev-button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg transition-colors">
+                    Câu trước
+                </button>
+                <button id="next-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                    Câu tiếp
+                </button>
+                <button id="submit-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors hidden">
+                    Nộp bài
+                </button>
+            </div>
+        </div>
+
+        <!-- Màn hình Kết quả -->
+        <div id="result-screen" class="hidden">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-4">Hoàn thành!</h2>
+            <div class="bg-blue-50 rounded-lg p-6 text-center mb-6">
+                <p class="text-lg text-gray-700">Bạn đã trả lời đúng</p>
+                <p class="text-5xl font-bold text-blue-600 my-2"><span id="score"></span>/<span id="total-score"></span></p>
+                <p class="text-lg text-gray-700">Thời gian làm bài: <span id="time-taken" class="font-semibold"></span></p>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                <button id="review-button" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition-colors">
+                    Xem lại bài
+                </button>
+                <button id="restart-button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                    Làm lại
+                </button>
+            </div>
+
+            <!-- Phần xem lại (ẩn ban đầu) -->
+            <div id="review-container" class="hidden mt-6 max-h-[400px] overflow-y-auto pr-2 space-y-4">
+                <!-- Nội dung xem lại sẽ được thêm vào đây -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DỮ LIỆU CÂU HỎI ---
+        // Dữ liệu được trích xuất và phân tích từ tệp PDF
+        const questions = [
+            {
+                question: "Câu 1. Xác định bậc của phản ứng: $2O_{3}(k) \\rightarrow 3O_{2}(k)$. Biết phương trình tốc độ của phản ứng: $v = k[O_{3}]^{2}/[O_{2}]$",
+                options: [
+                    { id: "A", text: "Bậc 1" },
+                    { id: "B", text: "Bậc 2" },
+                    { id: "C", text: "Bậc 3" },
+                    { id: "D", text: "Bậc 4" }
+                ],
+                answer: "A" // Bậc = 2 - 1 = 1
+            },
+            {
+                question: "Câu 2. Nhận định nào dưới đây KHÔNG ĐÚNG về thời điểm xác lập cân bằng hoá học?",
+                options: [
+                    { id: "A", text: "Tốc độ phản ứng thuận bằng tốc độ phản ứng nghịch." },
+                    { id: "B", text: "Số mol các chất tham gia phản ứng không đổi." },
+                    { id: "C", text: "Phản ứng thuận và nghịch đều dừng lại." },
+                    { id: "D", text: "Số mol các chất sản phẩm không đổi." }
+                ],
+                answer: "C" // Cân bằng động, phản ứng vẫn xảy ra
+            },
+            {
+                question: "Câu 3. Đương lượng của ion $Ca^{2+}$ $(M=40)$ là:",
+                options: [
+                    { id: "A", text: "40" },
+                    { id: "B", text: "20" },
+                    { id: "C", text: "50" },
+                    { id: "D", text: "30" }
+                ],
+                answer: "B" // ĐL = M/z = 40/2 = 20
+            },
+            {
+                question: "Câu 4. Biết rằng khi nhiệt độ tăng lên $10^{\\circ}C$, tốc độ của một phản ứng tăng 2 lần. Nếu phản ứng đó đang xảy ra ở $20^{\\circ}C$, để tăng tốc độ phản ứng lên 32 lần thì phải thực hiện phản ứng ở:",
+                options: [
+                    { id: "A", text: "$60^{\\circ}C$" },
+                    { id: "B", text: "$120^{\\circ}C$" },
+                    { id: "C", text: "$70^{\\circ}C$" },
+                    { id: "D", text: "$80^{\\circ}C$" }
+                ],
+                answer: "C" // gamma = 2. v2/v1 = 32 = 2^5. (T2-T1)/10 = 5 => T2-T1 = 50. T2 = 20 + 50 = 70
+            },
+            {
+                question: "Câu 5. Cho phản ứng: $2NO(k) + O_{2}(k) \\rightarrow 2NO_{2}(k)$, $v = k[NO]^{2}[O_{2}]$. Tăng nồng độ NO và O2 lên 3 lần thì tốc độ phản ứng thay đổi là:",
+                options: [
+                    { id: "A", text: "Tốc độ phản ứng tăng 27 lần" },
+                    { id: "B", text: "Tốc độ phản ứng tăng 9 lần" },
+                    { id: "C", text: "Tốc độ phản ứng tăng 6 lần" },
+                    { id: "D", text: "Tốc độ phản ứng tăng 4 lần" }
+                ],
+                answer: "A" // v_new = k(3[NO])^2 * (3[O2]) = k * 9[NO]^2 * 3[O2] = 27 * v_old
+            },
+            {
+                question: "Câu 6. Để pha dung dịch chuẩn $Na_{2}CO_{3}$ người ta cân chính xác một lượng 1,325 g muối $Na_{2}CO_{3}$ tinh khiết sau đó đem hòa tan trong bình định mức 250 ml và thêm nước đến vạch định mức. ... Nồng độ ... của $Na_{2}CO_{3}$. Biết $(M=106)$",
+                options: [
+                    { id: "A", text: "0,1 N" },
+                    { id: "B", text: "0,05 N" },
+                    { id: "C", text: "0,01 N" },
+                    { id: "D", text: "0,5 N" }
+                ],
+                answer: "A" // n = 1.325/106 = 0.0125 mol. z=2. N = (n*z)/V = (0.0125*2)/0.25 = 0.1 N
+            },
+            {
+                question: "Câu 7. Dung dịch sử dụng trong bình acqui là dung dịch $H_{2}SO_{4}$ 3,75 M, có khối lượng riêng là $1,230 g/ml$. Tính nồng độ % của dung dịch trên.",
+                options: [
+                    { id: "A", text: "32,8%" },
+                    { id: "B", text: "25,3%" },
+                    { id: "C", text: "20,1%" },
+                    { id: "D", text: "29,9%" }
+                ],
+                answer: "D" // m_ct = 3.75*98 = 367.5g. m_dd (1L) = 1000ml * 1.23g/ml = 1230g. C% = (367.5/1230)*100 = 29.87%
+            },
+            {
+                question: "Câu 8. Trộn 400 ml HCl 1 M với 600 ml HCl 2 M. Nếu sự pha trộn không làm thay đổi thể tích các dung dịch đem trộn, thì dung dịch mới có nồng độ là:",
+                options: [
+                    { id: "A", text: "1,5 M" },
+                    { id: "B", text: "1,8 M" },
+                    { id: "C", text: "1,6 M" },
+                    { id: "D", text: "1,2 M" }
+                ],
+                answer: "C" // n_total = (0.4*1) + (0.6*2) = 0.4 + 1.2 = 1.6 mol. V_total = 0.4 + 0.6 = 1.0 L. C_M = 1.6/1.0 = 1.6 M
+            },
+            {
+                question: "Câu 9. Phản ứng nào được điều kiện nhiệt độ và áp suất cao để xảy ra theo chiều thu được lượng lớn sản phẩm là:",
+                options: [
+                    { id: "A", text: "$H_{2}(k) + I_{2}(k) \\rightleftharpoons 2HI(k), \\Delta H < 0$" },
+                    { id: "B", text: "$MgCO_{3}(r) \\rightleftharpoons CO_{2}(k) + MgO(r), \\Delta H > 0$" },
+                    { id: "C", text: "$N_{2}(k) + O_{2}(k) \\rightleftharpoons 2NO(k), \\Delta H > 0$" },
+                    { id: "D", text: "$N_{2}(k) + 3H_{2}(k) \\rightleftharpoons 2NH_{3}(k), \\Delta H < 0$" }
+                ],
+                answer: "D" // P cao (4 mol -> 2 mol), T cao (thực tế) dù deltaH < 0 (cần T thấp) nhưng dùng T cao để tăng tốc độ.
+            },
+            {
+                question: "Câu 11. Sương mù là loại hệ phân tán:",
+                options: [
+                    { id: "A", text: "Khí - Khí" },
+                    { id: "B", text: "Lỏng - Khí" },
+                    { id: "C", text: "Khí - Lỏng" },
+                    { id: "D", text: "Lỏng - Lỏng" }
+                ],
+                answer: "B" // Lỏng (giọt nước) phân tán trong Khí (không khí)
+            },
+            {
+                question: "Câu 12. Nồng độ đương lượng gam cho biết số đương lượng gam chất tan có trong",
+                options: [
+                    { id: "A", text: "1 kg dung dịch" },
+                    { id: "B", text: "1 lít dung môi" },
+                    { id: "C", text: "1 lít dung dịch" },
+                    { id: "D", text: "1 kg dung môi" }
+                ],
+                answer: "C"
+            },
+            {
+                question: "Câu 13. Đặc điểm của xúc tác enzyme: I. Đặc hiệu, II. Chọn lọc, III. Có đặc tính của cả xúc tác đồng thể và dị thể",
+                options: [
+                    { id: "A", text: "II và III đúng" },
+                    { id: "B", text: "I và II đúng" },
+                    { id: "C", text: "I, II và III đúng" },
+                    { id: "D", text: "I và III đúng" }
+                ],
+                answer: "C"
+            },
+            {
+                question: "Câu 14. Hòa tan 228 g CH3COOH vào nước để thu được 0,5 lít dung dịch có khối lượng riêng bằng $1,04 g/ml$. Tính nồng độ molan của dung dịch.",
+                options: [
+                    { id: "A", text: "19,31 m" },
+                    { id: "B", text: "7,31 m" },
+                    { id: "C", text: "25,01 m" },
+                    { id: "D", text: "13,01 m" }
+                ],
+                answer: "D" // n_ct = 228/60 = 3.8 mol. m_dd = 500*1.04 = 520g. m_dm = 520 - 228 = 292g = 0.292kg. Cm = 3.8/0.292 = 13.01m
+            },
+            {
+                question: "Câu 15. Chọn phát biểu đúng: I. Chất tan và dung môi hoà tan vào nhau khi chúng là những hợp chất phân cực. II. Chất tan và dung môi hoà tan vào nhau khi một trong 2 chất là hợp chất phân cực. III. Chất tan và dung môi hoà tan vào nhau khi chúng là những hợp chất không phân cực.",
+                options: [
+                    { id: "A", text: "I và II đúng" },
+                    { id: "B", text: "I và III đúng" },
+                    { id: "C", text: "II và III đúng" },
+                    { id: "D", text: "I, II, III đúng" }
+                ],
+                answer: "B" // "Like dissolves like"
+            },
+            {
+                question: "Câu 16. Số cấu tử trong hệ cân bằng sau là: $C(gr) + CO_{2}(k) \\rightleftharpoons 2CO(k), \\Delta H > 0$",
+                options: [
+                    { id: "A", text: "1" },
+                    { id: "B", text: "3" },
+                    { id: "C", text: "4" },
+                    { id: "D", text: "2" }
+                ],
+                answer: "B" // 3 cấu tử: C, CO2, CO
+            },
+            {
+                question: "Câu 17. Cho phản ứng: $aA + bB \\rightleftharpoons cC + dD$. Thiết lập biểu thức hằng số cân bằng $K_{c}$ của phản ứng trên.",
+                options: [
+                    { id: "A", text: "Tùy thuộc từng trường hợp" },
+                    { id: "B", text: "$K = \\frac{[A]^{a} \\cdot [B]^{b}}{[C]^{c} \\cdot [D]^{d}}$" },
+                    { id: "C", text: "$K = \\frac{[C]^{c} \\cdot [D]^{d}}{[A]^{a} \\cdot [B]^{b}}$" },
+                    { id: "D", text: "Tất cả sai" }
+                ],
+                answer: "C" // [Sản phẩm] / [Chất tham gia]
+            },
+            {
+                question: "Câu 18. Các yếu tố ảnh hưởng đến tốc độ phản ứng là:",
+                options: [
+                    { id: "A", text: "Nồng độ" },
+                    { id: "B", text: "Nhiệt độ" },
+                    { id: "C", text: "Chất xúc tác" },
+                    { id: "D", text: "Tất cả đều đúng" }
+                ],
+                answer: "D"
+            },
+            {
+                question: "Câu 19. Chọn phát biểu đúng về hệ số nhiệt:",
+                options: [
+                    { id: "A", text: "Là số lần tăng tốc độ phản ứng khi nhiệt độ phản ứng tăng mỗi $10^{\\circ}C$" },
+                    { id: "B", text: "Là số lần tăng tốc độ phản ứng của $V_{2}/V_{1}$" },
+                    { id: "C", text: "Là tốc độ phản ứng tại khoảng nhiệt độ không cao" },
+                    { id: "D", text: "Là số lần tăng tốc độ phản ứng trong khoảng nhiệt độ T1 và T2" }
+                ],
+                answer: "A"
+            },
+            {
+                question: "Câu 20. Phản ứng 2 chiều đạt trạng thái cân bằng khi:",
+                options: [
+                    { id: "A", text: "phản ứng có tốc độ phản ứng thuận > vận tốc phản ứng nghịch" },
+                    { id: "B", text: "phản ứng có tốc độ giảm dần và đạt $v=0$" },
+                    { id: "C", text: "phản ứng có tốc độ phản ứng thuận < vận tốc phản ứng nghịch" },
+                    { id: "D", text: "vận tốc phản ứng thuận bằng vận tốc phản ứng nghịch" }
+                ],
+                answer: "D"
+            },
+            {
+                question: "Câu 21. Cho cân bằng sau: $CrO_{4}^{2-} + H^{+} \\leftrightarrow Cr_{2}O_{7}^{2-} + H_{2}O$ (màu vàng) (màu cam). Khi cho thêm $H^{+}$ vào dung dịch cromat thì màu sắc của dung dịch bị thay đổi thế nào?",
+                options: [
+                    { id: "A", text: "Không thay đổi màu" },
+                    { id: "B", text: "Màu nhạt dần" },
+                    { id: "C", text: "Lúc đậm lúc nhạt" },
+                    { id: "D", text: "Màu đậm dần" }
+                ],
+                answer: "D" // Thêm H+, CB dịch sang phải (màu cam), màu "đậm" hơn (thực ra là đổi màu)
+            },
+            {
+                question: "Câu 22. Cần bao nhiêu gam NaOH để pha chế 250ml dd có $pH=10$",
+                options: [
+                    { id: "A", text: "0,001 gam" },
+                    { id: "B", text: "0.01 gam" },
+                    { id: "C", text: "0.0001 gam" },
+                    { id: "D", text: "Đáp án khác" }
+                ],
+                answer: "A" // pH=10 -> pOH=4 -> [OH-]=10^-4 M. n = C*V = 10^-4 * 0.25 = 2.5e-5 mol. m = n*M = 2.5e-5 * 40 = 0.001g
+            },
+            {
+                question: "Câu 23. Một phản ứng có hằng số nhiệt độ $\\gamma = 3$. Hỏi khi tăng khoảng nhiệt độ lên $40^{\\circ}C$ thì tốc độ phản ứng đó tăng lên bao nhiêu lần?",
+                options: [
+                    { id: "A", text: "18 lần" },
+                    { id: "B", text: "81 lần" },
+                    { id: "C", text: "3 lần" },
+                    { id: "D", text: "12 lần" }
+                ],
+                answer: "B" // v2/v1 = gamma^((T2-T1)/10) = 3^(40/10) = 3^4 = 81
+            },
+            {
+                question: "Câu 24. Cho phản ứng: $2O_{3}(k) \\rightleftharpoons 3O_{2}(k)$. Hỏi phản ứng là tùy thuộc bậc mấy đối với $O_{3}$? Biết phương trình tốc độ của phản ứng trên có dạng: $v = k \\cdot [O_{3}]^{2}/[O_{2}]$",
+                options: [
+                    { id: "A", text: "4" },
+                    { id: "B", text: "3" },
+                    { id: "C", text: "2" },
+                    { id: "D", text: "1" }
+                ],
+                answer: "C" // Bậc 2 đối với O3
+            },
+            {
+                question: "Câu 25. Một hỗn hợp gồm: $CaCO_{3}(r)$, $CO_{2}(k)$, $CaO(r)$ nằm cân bằng với nhau thì số cấu tử độc lập là:",
+                options: [
+                    { id: "A", text: "1" },
+                    { id: "B", text: "2" },
+                    { id: "C", text: "3" },
+                    { id: "D", text: "4" }
+                ],
+                answer: "B" // K=3 (CaCO3, CO2, CaO). Số PT độc lập = 1 (CaCO3 <=> CO2 + CaO). S = K - r = 3 - 1 = 2.
+            },
+            {
+                question: "Câu 26. Chọn phát biểu đúng:",
+                options: [
+                    { id: "A", text: "Hệ dị thể là hệ chỉ có một pha duy nhất" },
+                    { id: "B", text: "Hệ đồng thể là hệ có từ hai pha trở lên" },
+                    { id: "C", text: "Hệ đồng thể là hệ chỉ có một pha duy nhất" },
+                    { id: "D", text: "Tất cả sai" }
+                ],
+                answer: "C"
+            },
+            {
+                question: "Câu 27. Cho phản ứng: $2SO_{2}(k) + O_{2}(k) \\rightleftharpoons 2SO_{3}(k)$ có $\\Delta H < 0$. Để thu được nhiều $SO_{3}$ hơn, ta nên chọn biện pháp nào trong 3 biện pháp sau: I) Giảm nhiệt độ, II) Tăng áp suất, III) Thêm O2",
+                options: [
+                    { id: "A", text: "Chỉ có I và II" },
+                    { id: "B", text: "Chỉ có biện pháp I" },
+                    { id: "C", text: "Chỉ có I và III" },
+                    { id: "D", text: "Cả 3 biện pháp" }
+                ],
+                answer: "D" // I (tỏa nhiệt, dịch phải), II (3 mol -> 2 mol, dịch phải), III (thêm O2, dịch phải)
+            },
+            {
+                question: "Câu 28. Cho cân bằng hóa học sau: $2SO_{2}(k) + O_{2}(k) \\rightleftharpoons 2SO_{3}(k); \\Delta H < 0$. Những biện pháp nào làm cân bằng trên chuyển dịch theo chiều thuận?",
+                options: [
+                    { id: "A", text: "(2) tăng áp suất, (3) hạ nhiệt độ, (5) giảm nồng độ SO3" },
+                    { id: "B", text: "(2) tăng áp suất, (3) hạ nhiệt độ, (4) dùng xúc tác, (6) giảm áp suất" },
+                    { id: "C", text: "(1) tăng nhiệt độ, (2) tăng áp suất, (4) dùng xúc tác, (5) giảm nồng độ SO3" },
+                    { id: "D", text: "(1) tăng nhiệt độ, (2) tăng áp suất, (4) dùng xúc tác" }
+                ],
+                answer: "A" // (2) Tăng P (dịch phải), (3) Hạ T (dịch phải), (5) Giảm SO3 (dịch phải). Xúc tác (4) không làm dịch CB.
+            },
+            {
+                question: "Câu 29. Tính pH của dung dịch HCl 0.01M",
+                options: [
+                    { id: "A", text: "1" },
+                    { id: "B", text: "4" },
+                    { id: "C", text: "2" },
+                    { id: "D", text: "8" }
+                ],
+                answer: "C" // [H+] = 0.01 = 10^-2 M. pH = -log(10^-2) = 2
+            },
+            {
+                question: "Câu 30. Khi nhiệt độ tăng thêm $10^{\\circ}C$, tốc độ phản ứng hoá học tăng thêm 2 lần. Hỏi tốc độ phản ứng đó sẽ tăng lên bao nhiêu lần khi nâng nhiệt độ từ $25^{\\circ}C$ lên $75^{\\circ}C$?",
+                options: [
+                    { id: "A", text: "4 lần" },
+                    { id: "B", text: "32 lần" },
+                    { id: "C", text: "8 lần" },
+                    { id: "D", text: "16 lần" }
+                ],
+                answer: "B" // gamma = 2. DeltaT = 75-25 = 50. Tăng = 2^(50/10) = 2^5 = 32
+            },
+            {
+                question: "Câu 31. Cho phản ứng: $NO(k) + O_{3}(k) \\rightarrow NO_{2}(k) + O_{2}(k)$. Hỏi phản ứng là tùy thuộc bậc mấy đối với NO? Biết phương trình tốc độ của phản ứng trên có dạng: $v = k \\cdot [NO] \\cdot [O_{3}]$",
+                options: [
+                    { id: "A", text: "3" },
+                    { id: "B", text: "2" },
+                    { id: "C", text: "1" },
+                    { id: "D", text: "4" }
+                ],
+                answer: "C" // Bậc 1 đối với NO
+            },
+            {
+                question: "Câu 32. Biết M của $Na_{2}CO_{3}$ là 106 và có phản ứng: $Na_{2}CO_{3} + 2HCl \\rightarrow 2NaCl + CO_{2} + H_{2}O$. Đương lượng gam của $Na_{2}CO_{3}$ là:",
+                options: [
+                    { id: "A", text: "45" },
+                    { id: "B", text: "106" },
+                    { id: "C", text: "53" },
+                    { id: "D", text: "35" }
+                ],
+                answer: "C" // z = 2 (trao đổi 2 H+). ĐL = M/z = 106/2 = 53
+            },
+            {
+                question: "Câu 33. Xác định số bậc tự do trong hệ cân bằng sau là: $C(gr) + CO_{2}(k) \\rightleftharpoons 2CO(k), \\Delta H > 0$",
+                options: [
+                    { id: "A", text: "2" },
+                    { id: "B", text: "1" },
+                    { id: "C", text: "3" },
+                    { id: "D", text: "4" }
+                ],
+                answer: "A" // K=3, F=2, r=1. S=K-r=2. f = S - F + n = 2 - 2 + 2 = 2.
+            },
+            {
+                question: "Câu 34. Xác định nồng độ đương lượng của dung dịch $H_{2}SO_{4}$ 1M trong phản ứng sau: $H_{2}SO_{4} + 2NaOH \\rightarrow Na_{2}SO_{4} + H_{2}O$",
+                options: [
+                    { id: "A", text: "2 N" },
+                    { id: "B", text: "0,5 N" },
+                    { id: "C", text: "1 N" },
+                    { id: "D", text: "Đáp án khác" }
+                ],
+                answer: "A" // z = 2. CN = CM * z = 1 * 2 = 2 N
+            },
+            {
+                question: "Câu 36. Nồng độ molan cho biết số mol chất tan có trong...",
+                options: [
+                    { id: "A", text: "1 kg dung dịch" },
+                    { id: "B", text: "1 kg dung môi" },
+                    { id: "C", text: "1 lít dung môi" },
+                    { id: "D", text: "1 lít dung dịch" }
+                ],
+                answer: "B"
+            },
+            {
+                question: "Câu 38. Biết M của $H_{2}SO_{4}$ là 98 và có phản ứng: $H_{2}SO_{4} + 2NaOH \\rightarrow Na_{2}SO_{4} + 2H_{2}O$. Đương lượng gam của $H_{2}SO_{4}$ là:",
+                options: [
+                    { id: "A", text: "98" },
+                    { id: "B", text: "89" },
+                    { id: "C", text: "49" },
+                    { id: "D", text: "94" }
+                ],
+                answer: "C" // z = 2. ĐL = M/z = 98/2 = 49
+            },
+            {
+                question: "Câu 39. Hỗn dịch là hệ phân tán có:",
+                options: [
+                    { id: "A", text: "Môi trường phân tán là pha lỏng, chất phân tán là pha lỏng" },
+                    { id: "B", text: "Môi trường phân tán là pha rắn, chất phân tán là pha rắn" },
+                    { id: "C", text: "A và D đúng" },
+                    { id: "D", text: "Môi trường phân tán là pha lỏng, chất phân tán là pha rắn" }
+                ],
+                answer: "D" // Hỗn dịch (suspension) = rắn trong lỏng
+            },
+            {
+                question: "Câu 40. Tính bậc tự do của các hệ cân bằng sau đây: $Hg(l) \\leftrightarrow Hg(h)$. Ở nhiệt độ không đổi.",
+                options: [
+                    { id: "A", text: "1" },
+                    { id: "B", text: "3" },
+                    { id: "C", text: "0" },
+                    { id: "D", text: "2" }
+                ],
+                answer: "C" // K=1, F=2. n=1 (P, vì T cố định). f = K - F + n = 1 - 2 + 1 = 0
+            }
+        ];
+
+        // --- BIẾN TOÀN CỤC ---
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+        let timer;
+        let timeLeft = 15 * 60; // 15 phút
+        const totalTime = 15 * 60;
+
+        // --- DOM ELEMENTS ---
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const startButton = document.getElementById('start-button');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const submitButton = document.getElementById('submit-button');
+        
+        const questionNumber = document.getElementById('question-number');
+        const totalQuestions = document.getElementById('total-questions');
+        const totalQuestionsStart = document.getElementById('total-questions-start');
+        const progressBar = document.getElementById('progress-bar');
+        const timerDisplay = document.getElementById('timer');
+
+        const scoreDisplay = document.getElementById('score');
+        const totalScoreDisplay = document.getElementById('total-score');
+        const timeTakenDisplay = document.getElementById('time-taken');
+        const reviewButton = document.getElementById('review-button');
+        const restartButton = document.getElementById('restart-button');
+        const reviewContainer = document.getElementById('review-container');
+
+        // --- KHỞI TẠO ---
+        function initializeApp() {
+            totalQuestions.textContent = questions.length;
+            totalQuestionsStart.textContent = questions.length;
+            totalScoreDisplay.textContent = questions.length;
+            
+            // Render KaTeX lần đầu
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false},
+                    {left: "\\[", right: "\\]", display: true}
+                ],
+                throwOnError : false
+            });
+        }
+        
+        // --- HÀM HẸN GIỜ ---
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    showResults();
+                }
+            }, 1000);
+        }
+
+        // --- HÀM QUIZ ---
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            userAnswers.fill(null);
+            timeLeft = totalTime;
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            resultScreen.classList.add('hidden');
+            reviewContainer.classList.add('hidden');
+            reviewContainer.innerHTML = '';
+            showQuestion(currentQuestionIndex);
+            startTimer();
+        }
+
+        function showQuestion(index) {
+            const question = questions[index];
+            questionText.textContent = question.question;
+            questionNumber.textContent = index + 1;
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach(option => {
+                const isSelected = userAnswers[index] === option.id;
+                const button = document.createElement('button');
+                button.innerHTML = `<span class="font-bold mr-2">${option.id}.</span> ${option.text}`;
+                button.className = `w-full text-left p-4 rounded-lg border-2 transition-all duration-200 ${
+                    isSelected 
+                    ? 'bg-blue-100 border-blue-400 ring-2 ring-blue-300' 
+                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                }`;
+                button.onclick = () => handleOptionSelect(option.id);
+                optionsContainer.appendChild(button);
+            });
+            
+            // Render KaTeX cho câu hỏi và lựa chọn
+            renderMathInElement(quizScreen, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false},
+                    {left: "\\[", right: "\\]", display: true}
+                ],
+                throwOnError : false
+            });
+
+            // Cập nhật thanh tiến trình
+            progressBar.style.width = `${((index + 1) / questions.length) * 100}%`;
+
+            // Cập nhật nút
+            prevButton.classList.toggle('hidden', index === 0);
+            nextButton.classList.toggle('hidden', index === questions.length - 1);
+            submitButton.classList.toggle('hidden', index !== questions.length - 1);
+        }
+
+        function handleOptionSelect(optionId) {
+            userAnswers[currentQuestionIndex] = optionId;
+            // Tự động chuyển câu hỏi tiếp theo
+            if (currentQuestionIndex < questions.length - 1) {
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    showQuestion(currentQuestionIndex);
+                }, 200); // Đợi 1 chút để user thấy lựa chọn
+            } else {
+                // Nếu là câu cuối, chỉ cập nhật UI
+                showQuestion(currentQuestionIndex);
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                showQuestion(currentQuestionIndex);
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion(currentQuestionIndex);
+            }
+        }
+
+        function showResults() {
+            clearInterval(timer);
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            let score = 0;
+            userAnswers.forEach((answer, index) => {
+                if (answer === questions[index].answer) {
+                    score++;
+                }
+            });
+
+            scoreDisplay.textContent = score;
+
+            const timeUsed = totalTime - timeLeft;
+            const minutes = Math.floor(timeUsed / 60);
+            const seconds = timeUsed % 60;
+            timeTakenDisplay.textContent = `${minutes} phút ${seconds} giây`;
+
+            buildReview();
+        }
+
+        function buildReview() {
+            reviewContainer.innerHTML = '';
+            questions.forEach((question, index) => {
+                const userAnswer = userAnswers[index];
+                const correctAnswer = question.answer;
+                const isCorrect = userAnswer === correctAnswer;
+
+                const reviewBlock = document.createElement('div');
+                reviewBlock.className = 'border-b border-gray-200 pb-4';
+                
+                let questionHtml = `<p class="font-semibold text-gray-800 mb-2">${question.question}</p>`;
+                
+                let optionsHtml = '<div class="space-y-2">';
+                question.options.forEach(option => {
+                    let classes = 'border-gray-300';
+                    if (option.id === correctAnswer) {
+                        classes = 'bg-green-100 border-green-400 text-green-800 font-medium';
+                    } else if (option.id === userAnswer && !isCorrect) {
+                        classes = 'bg-red-100 border-red-400 text-red-800';
+                    }
+                    optionsHtml += `<div class="p-2 rounded-md border ${classes}">${option.id}. ${option.text}</div>`;
+                });
+                optionsHtml += '</div>';
+
+                let answerHtml = '';
+                if (userAnswer === null) {
+                    answerHtml = `<p class="mt-2 text-sm text-yellow-600">Bạn đã bỏ qua câu này. Đáp án đúng là <span class="font-bold">${correctAnswer}</span>.</p>`;
+                } else if (!isCorrect) {
+                    answerHtml = `<p class="mt-2 text-sm text-red-600">Bạn chọn <span class="font-bold">${userAnswer}</span>. Đáp án đúng là <span class="font-bold">${correctAnswer}</span>.</p>`;
+                } else {
+                     answerHtml = `<p class="mt-2 text-sm text-green-600">Bạn đã trả lời đúng.</p>`;
+                }
+
+                reviewBlock.innerHTML = questionHtml + optionsHtml + answerHtml;
+                reviewContainer.appendChild(reviewBlock);
+            });
+            
+             // Render KaTeX cho phần review
+            renderMathInElement(reviewContainer, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false},
+                    {left: "\\[", right: "\\]", display: true}
+                ],
+                throwOnError : false
+            });
+        }
+
+        // --- EVENT LISTENERS ---
+        startButton.addEventListener('click', startQuiz);
+        nextButton.addEventListener('click', nextQuestion);
+        prevButton.addEventListener('click', prevQuestion);
+        submitButton.addEventListener('click', showResults);
+        
+        restartButton.addEventListener('click', () => {
+             // Chuyển về màn hình bắt đầu thay vì bắt đầu ngay
+            resultScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            reviewContainer.innerHTML = '';
+            reviewContainer.classList.add('hidden');
+        });
+        
+        reviewButton.addEventListener('click', () => {
+            reviewContainer.classList.toggle('hidden');
+            reviewButton.textContent = reviewContainer.classList.contains('hidden') ? 'Xem lại bài' : 'Ẩn xem lại';
+        });
+
+        // --- KHỞI ĐỘNG ---
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+    </script>
+</body>
+</html>
